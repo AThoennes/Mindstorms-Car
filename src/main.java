@@ -1,7 +1,5 @@
-import lejos.hardware.ev3.EV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.Port;
 import lejos.robotics.RegulatedMotor;
 
 
@@ -11,42 +9,80 @@ import lejos.robotics.RegulatedMotor;
  */
 public class main
 {
+    static EV3LargeRegulatedMotor backWheel;
+    static EV3LargeRegulatedMotor leftWheel;
+    static EV3LargeRegulatedMotor rightWheel;
     public static void main (String [] args)
     {
-        EV3LargeRegulatedMotor backWheel = new EV3LargeRegulatedMotor(MotorPort.A);
-        EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.B);
-        EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.C);
+        backWheel = new EV3LargeRegulatedMotor(MotorPort.A);
+        leftWheel = new EV3LargeRegulatedMotor(MotorPort.B);
+        rightWheel = new EV3LargeRegulatedMotor(MotorPort.C);
 
-        RegulatedMotor [] syncList = {leftWheel, rightWheel};
+        RegulatedMotor [] syncList = {rightWheel};
         leftWheel.synchronizeWith(syncList);
 
-//        // if top of the motor faces to the middle
-//        leftWheel.forward(); // turns left
-//        leftWheel.backward(); // turns right
-//
-//        // if motors face to the outside
-//        leftWheel.backward(); // turns left
-//        leftWheel.forward(); // turns right
-
         // test motors
-        testMotor(backWheel);
-        testMotor(leftWheel);
-//        testMotor(rightWheel);
+//        testMotor(backWheel);
+
+        // turn turns
+//        testTurns();
+        backWheel.rotate(1800);
+        backWheel.rotate(-1800);
+
+        leftWheel.rotate(30);
+        rightWheel.rotate(-30);
+
+        backWheel.rotate(1800);
+        backWheel.rotate(-1800);
+
+        // turn left
+        leftWheel.rotate(-30);
+        rightWheel.rotate(30);
+
+        backWheel.rotate(1800);
+        backWheel.rotate(-1800);
     }
 
-    private static void testMotor(EV3LargeRegulatedMotor m)
+    private static void testTurns()
     {
         try
         {
-            m.forward();
+            // turn right
+            leftWheel.rotate(30);
+            rightWheel.rotate(-30);
             Thread.sleep(1000);
-            m.backward();
-            Thread.sleep(1000);
-            m.stop();
+            // turn left
+            leftWheel.rotate(-30);
+            rightWheel.rotate(30);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace();
         }
+    }
+
+    private static void testMotor(EV3LargeRegulatedMotor m)
+    {
+
+
+        while (1==1)
+        {
+            m.forward();
+        }
+
+//        try
+//        {
+//            m.forward();
+//            m.forward();
+//            Thread.sleep(1000);
+//            m.backward();
+//            m.backward();
+//            Thread.sleep(1000);
+//            m.stop();
+//        }
+//        catch (InterruptedException e)
+//        {
+//            e.printStackTrace();
+//        }
     }
 }
