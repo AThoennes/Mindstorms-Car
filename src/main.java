@@ -1,88 +1,89 @@
+import lejos.hardware.Button;
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
-
+import lejos.robotics.SampleProvider;
 
 
 /**
- * Created by Alex on 2/2/19
+ * Created by Alex Thoennes and Dan Tartaglione on 2/2/19
  */
 public class main
 {
-    static EV3LargeRegulatedMotor backWheel;
-    static EV3LargeRegulatedMotor leftWheel;
-    static EV3LargeRegulatedMotor rightWheel;
-    public static void main (String [] args)
+    public static void main (String [] args) throws InterruptedException
     {
-        backWheel = new EV3LargeRegulatedMotor(MotorPort.A);
-        leftWheel = new EV3LargeRegulatedMotor(MotorPort.B);
-        rightWheel = new EV3LargeRegulatedMotor(MotorPort.C);
+        NXTUltrasonicSensor front = new NXTUltrasonicSensor(SensorPort.S1);
+        NXTUltrasonicSensor right = new NXTUltrasonicSensor(SensorPort.S2);
 
-        RegulatedMotor [] syncList = {rightWheel};
-        leftWheel.synchronizeWith(syncList);
+        EV3LargeRegulatedMotor backWheel = new EV3LargeRegulatedMotor(MotorPort.A);
+        EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.B);
+        EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.C);
 
-        // test motors
-//        testMotor(backWheel);
+        SampleProvider frontReading = front.getDistanceMode();
+        SampleProvider rightReading = right.getDistanceMode();
 
-        // turn turns
-//        testTurns();
-        backWheel.rotate(1800);
-        backWheel.rotate(-1800);
+        float[] sample = new float[frontReading.sampleSize()+rightReading.sampleSize()];
 
-        leftWheel.rotate(30);
-        rightWheel.rotate(-30);
+        LCD.drawString("Press a button to start",0,0);
+        Button.waitForAnyPress();
+        LCD.clear();
 
-        backWheel.rotate(1800);
-        backWheel.rotate(-1800);
+        backWheel.setSpeed(300);
+        backWheel.forward();
 
-        // turn left
-        leftWheel.rotate(-30);
-        rightWheel.rotate(30);
-
-        backWheel.rotate(1800);
-        backWheel.rotate(-1800);
-    }
-
-    private static void testTurns()
-    {
-        try
+        while (true)
         {
-            // turn right
-            leftWheel.rotate(30);
-            rightWheel.rotate(-30);
-            Thread.sleep(1000);
-            // turn left
-            leftWheel.rotate(-30);
-            rightWheel.rotate(30);
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
-    }
+            frontReading.fetchSample(sample, 0);
+            rightReading.fetchSample(sample, 1);
 
-    private static void testMotor(EV3LargeRegulatedMotor m)
-    {
+            if (sample[0] <= 0.5)
+            {
+                // wall in front
+                // check right and left
+                // decide where to turn
+//                LCD.drawString("WALL IN FRONT", 0, 0);
+                leftWheel.synchronizeWith(new RegulatedMotor[] {rightWheel});
+                leftWheel.startSynchronization();
+                leftWheel.rotate(-35);
+                rightWheel.rotate(35);
+                leftWheel.endSynchronization();
+                leftWheel.waitComplete();
+                rightWheel.waitComplete();
 
+                while (sample[0] <= 0.5)
+                {
+                    frontReading.fetchSample(sample, 0);
+                }
+//                Thread.sleep(2000);
 
-        while (1==1)
-        {
-            m.forward();
+                leftWheel.startSynchronization();
+                leftWheel.rotate(35);
+                rightWheel.rotate(-35);
+                leftWheel.endSynchronization();
+                leftWheel.waitComplete();
+                rightWheel.waitComplete();
+            }
         }
 
-//        try
-//        {
-//            m.forward();
-//            m.forward();
-//            Thread.sleep(1000);
-//            m.backward();
-//            m.backward();
-//            Thread.sleep(1000);
-//            m.stop();
-//        }
-//        catch (InterruptedException e)
-//        {
-//            e.printStackTrace();
-//        }
+
+
+//        backWheel.rotate(1800);
+//        backWheel.rotate(-1800);
+//
+//        leftWheel.rotate(30);
+//        rightWheel.rotate(-30);
+//
+//        backWheel.rotate(1800);
+//        backWheel.rotate(-1800);
+//
+//        // turn left
+//        leftWheel.rotate(-30);
+//        rightWheel.rotate(30);
+//
+//        backWheel.rotate(1800);
+//        backWheel.rotate(-1800);
     }
 }
