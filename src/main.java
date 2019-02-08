@@ -13,14 +13,19 @@ import lejos.robotics.SampleProvider;
  */
 public class main
 {
-    public static void main (String [] args) throws InterruptedException
-    {
-        NXTUltrasonicSensor front = new NXTUltrasonicSensor(SensorPort.S1);
-        NXTUltrasonicSensor right = new NXTUltrasonicSensor(SensorPort.S2);
+    public static double dl=0.0;
+    public static double dr=0.0;
 
-        EV3LargeRegulatedMotor backWheel = new EV3LargeRegulatedMotor(MotorPort.A);
-        EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.B);
-        EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.C);
+    final static NXTUltrasonicSensor front = new NXTUltrasonicSensor(SensorPort.S1);
+    final static NXTUltrasonicSensor right = new NXTUltrasonicSensor(SensorPort.S2);
+
+    final static EV3LargeRegulatedMotor backWheel = new EV3LargeRegulatedMotor(MotorPort.A);
+    final static EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.B);
+    final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.C);
+
+    public static void main (String [] args)
+    {
+        leftWheel.synchronizeWith(new RegulatedMotor[] {rightWheel});
 
         SampleProvider frontReading = front.getDistanceMode();
         SampleProvider rightReading = right.getDistanceMode();
@@ -32,58 +37,93 @@ public class main
         LCD.clear();
 
         backWheel.setSpeed(300);
-        backWheel.forward();
+        backWheel.backward();
+        leftWheel.setSpeed(200);
+        rightWheel.setSpeed(200);
 
         while (true)
         {
             frontReading.fetchSample(sample, 0);
             rightReading.fetchSample(sample, 1);
 
-            if (sample[0] <= 0.5)
+
+            //Left
+            if (sample[1] < 0.15)
             {
-                // wall in front
-                // check right and left
-                // decide where to turn
-//                LCD.drawString("WALL IN FRONT", 0, 0);
-                leftWheel.synchronizeWith(new RegulatedMotor[] {rightWheel});
+                //turnLeft(10);
                 leftWheel.startSynchronization();
-                leftWheel.rotate(-35);
-                rightWheel.rotate(35);
+                leftWheel.rotateTo((int)(-30*Math.atan(sample[1]*20.94)));
+                rightWheel.rotateTo((int)(22*Math.atan(sample[1]*20.94)));
                 leftWheel.endSynchronization();
-                leftWheel.waitComplete();
-                rightWheel.waitComplete();
-
-                while (sample[0] <= 0.5)
+                while(sample[1]<0.15)
                 {
-                    frontReading.fetchSample(sample, 0);
+                    rightReading.fetchSample(sample,  1);
                 }
-//                Thread.sleep(2000);
-
-                leftWheel.startSynchronization();
-                leftWheel.rotate(35);
-                rightWheel.rotate(-35);
-                leftWheel.endSynchronization();
-                leftWheel.waitComplete();
-                rightWheel.waitComplete();
             }
+            else if (sample[1] > 0.21)
+            {
+                //turnLeft(10);
+                leftWheel.startSynchronization();
+                leftWheel.rotateTo((int)(22*Math.atan(sample[1]*14.96)));
+                rightWheel.rotateTo((int)(-30*Math.atan(sample[1]*14.96)));
+                leftWheel.endSynchronization();
+                while(sample[1]>0.21)
+                {
+                    rightReading.fetchSample(sample,  1);
+                }
+            }
+            else
+            {
+                leftWheel.startSynchronization();
+                leftWheel.rotateTo(0);
+                rightWheel.rotateTo(0);
+                leftWheel.endSynchronization();
+            }
+//            int m=(int)wcm(sample[1], sample[0]);
+//            leftWheel.rotateTo(m);
+//            rightWheel.rotateTo(-m);
         }
-
-
-
-//        backWheel.rotate(1800);
-//        backWheel.rotate(-1800);
-//
-//        leftWheel.rotate(30);
-//        rightWheel.rotate(-30);
-//
-//        backWheel.rotate(1800);
-//        backWheel.rotate(-1800);
-//
-//        // turn left
-//        leftWheel.rotate(-30);
-//        rightWheel.rotate(30);
-//
-//        backWheel.rotate(1800);
-//        backWheel.rotate(-1800);
     }
+
+//    public static void turnLeft(double deg)
+//    {
+//    	double r=0.15/Math.tan(deg)+0.035;
+//    	double hyp=Math.sqrt(Math.pow(r+0.035, 2)+0.0225);
+//    	double degRight=Math.acos(0.15/hyp);
+//    	dl-=deg;
+//    	dr+=degRight;
+//    	leftWheel.synchronizeWith(new RegulatedMotor[] {rightWheel});
+//        leftWheel.startSynchronization();
+//        leftWheel.rotate(-(int)deg);
+//        rightWheel.rotate(-(int)degRight);
+//        leftWheel.endSynchronization();
+//        leftWheel.waitComplete();
+//        rightWheel.waitComplete();
+//    }
+//
+//    public static void turnRight(double deg)
+//    {
+//    	double r=0.15/Math.tan(deg)+0.035;
+//    	double hyp=Math.sqrt(Math.pow(r-0.035, 2)+0.0225);
+//    	double degLeft=Math.acos(0.15/hyp);
+//    	dr-=deg;
+//    	dl+=degLeft;
+//    	leftWheel.synchronizeWith(new RegulatedMotor[] {rightWheel});
+//        leftWheel.startSynchronization();
+//        leftWheel.rotate(-(int)degLeft);
+//        rightWheel.rotate(-(int)deg);
+//        leftWheel.endSynchronization();
+//        leftWheel.waitComplete();
+//        rightWheel.waitComplete();
+//    }
+
+//    public static double wcm(double rd, double fd)
+//    {
+//    	double f=0;
+//    	if(fd<0.35) {f=(0.35-fd)/0.35;}
+//    	double g=1-Math.pow(Math.E, 0.155-rd);
+//    	double dist=Math.toDegrees((5/6.0*Math.atan(g*(Math.pow(Math.E, f)))));
+//    	if(f>0) return -1*dist;
+//    	else return dist;
+//    }
 }
