@@ -48,26 +48,26 @@ public class main
 
 
             //Left
-            if (sample[1] < 0.15)
+            if (sample[1] < 0.16)
             {
                 //turnLeft(10);
                 leftWheel.startSynchronization();
                 leftWheel.rotateTo((int)(-30*Math.atan(sample[1]*20.94)));
                 rightWheel.rotateTo((int)(22*Math.atan(sample[1]*20.94)));
                 leftWheel.endSynchronization();
-                while(sample[1]<0.15)
+                while(sample[1]<0.16)
                 {
                     rightReading.fetchSample(sample,  1);
                 }
             }
-            else if (sample[1] > 0.21)
+            else if (sample[1] > 0.16)
             {
                 //turnLeft(10);
                 leftWheel.startSynchronization();
                 leftWheel.rotateTo((int)(22*Math.atan(sample[1]*14.96)));
                 rightWheel.rotateTo((int)(-30*Math.atan(sample[1]*14.96)));
                 leftWheel.endSynchronization();
-                while(sample[1]>0.21)
+                while(sample[1]>0.16)
                 {
                     rightReading.fetchSample(sample,  1);
                 }
