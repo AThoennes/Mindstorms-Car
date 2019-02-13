@@ -39,6 +39,8 @@ public class Tank
         leftWheel.forward();
         rightWheel.forward();
 
+        PIDController pid = new PIDController(OPTIMAL_DISTANCE, BASE_SPEED);
+
         while (true)
         {
             frontReading.fetchSample(sample, 0);
@@ -47,13 +49,13 @@ public class Tank
             if (sample[1] > OPTIMAL_DISTANCE)
             {
                 // turn right
-                leftWheel.setSpeed(getRightTurnSpeed(sample[1]));
-                rightWheel.setSpeed((int) (1.85*BASE_SPEED) - getLeftTurnSpeed(sample[1]));
+                leftWheel.setSpeed(pid.getRightTurnSpeed(sample[1]));
+                rightWheel.setSpeed((int) (1.85*BASE_SPEED) - pid.getLeftTurnSpeed(sample[1]));
 
                 while (sample[1] > OPTIMAL_DISTANCE)
                 {
                     rightReading.fetchSample(sample, 1);
-                    leftWheel.setSpeed(getRightTurnSpeed(sample[1]));
+                    leftWheel.setSpeed(pid.getRightTurnSpeed(sample[1]));
                     LCD.drawString("TURNING RIGHT",0,0);
                 }
                 LCD.clear();
@@ -62,32 +64,18 @@ public class Tank
             else if (sample[1] < OPTIMAL_DISTANCE)
             {
                 // turn left
-                rightWheel.setSpeed(getLeftTurnSpeed(sample[1]));
-                leftWheel.setSpeed(getRightTurnSpeed(sample[1]));
+                rightWheel.setSpeed(pid.getLeftTurnSpeed(sample[1]));
+                leftWheel.setSpeed(pid.getRightTurnSpeed(sample[1]));
 
                 while (sample[1] < OPTIMAL_DISTANCE)
                 {
                     rightReading.fetchSample(sample, 1);
-                    rightWheel.setSpeed(getLeftTurnSpeed(sample[1]));
+                    rightWheel.setSpeed(pid.getLeftTurnSpeed(sample[1]));
                     LCD.drawString("TURNING LEFT", 0, 0);
                 }
                 LCD.clear();
                 rightWheel.setSpeed(BASE_SPEED);
             }
         }
-    }
-
-    private static int getRightTurnSpeed(float samp)
-    {
-        double error = (OPTIMAL_DISTANCE - samp) * 2;
-        double turnSpeed = BASE_SPEED * (1 - error);
-        return (int) turnSpeed;
-    }
-
-    private static int getLeftTurnSpeed(float samp)
-    {
-        double error = (OPTIMAL_DISTANCE - samp) * 2;
-        double turnSpeed = BASE_SPEED * (1 + error);
-        return (int) turnSpeed;
     }
 }
