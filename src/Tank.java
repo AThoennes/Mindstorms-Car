@@ -6,6 +6,7 @@ import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
 import lejos.robotics.SampleProvider;
+import lejos.robotics.chassis.Wheel;
 
 /**
  * Created by Alex Thoennes and Dan Tartaglione on 2/11/19
@@ -49,32 +50,30 @@ public class Tank
             if (sample[1] > OPTIMAL_DISTANCE)
             {
                 // turn right
-                leftWheel.setSpeed(pid.getRightTurnSpeed(sample[1]));
-                rightWheel.setSpeed((int) (1.85*BASE_SPEED) - pid.getLeftTurnSpeed(sample[1]));
+                leftWheel.setSpeed(BASE_SPEED - pid.getTurnSpeed(sample[1]));
+                rightWheel.setSpeed(BASE_SPEED + pid.getTurnSpeed(sample[1]));
 
                 while (sample[1] > OPTIMAL_DISTANCE)
                 {
                     rightReading.fetchSample(sample, 1);
-                    leftWheel.setSpeed(pid.getRightTurnSpeed(sample[1]));
-                    LCD.drawString("TURNING RIGHT",0,0);
+                    leftWheel.setSpeed(pid.getTurnSpeed(sample[1]));
                 }
-                LCD.clear();
                 leftWheel.setSpeed(BASE_SPEED);
+                rightWheel.setSpeed(BASE_SPEED);
             }
             else if (sample[1] < OPTIMAL_DISTANCE)
             {
                 // turn left
-                rightWheel.setSpeed(pid.getLeftTurnSpeed(sample[1]));
-                leftWheel.setSpeed(pid.getRightTurnSpeed(sample[1]));
+                rightWheel.setSpeed(BASE_SPEED + pid.getTurnSpeed(sample[1]));
+                leftWheel.setSpeed(BASE_SPEED - pid.getTurnSpeed(sample[1]));
 
                 while (sample[1] < OPTIMAL_DISTANCE)
                 {
                     rightReading.fetchSample(sample, 1);
-                    rightWheel.setSpeed(pid.getLeftTurnSpeed(sample[1]));
-                    LCD.drawString("TURNING LEFT", 0, 0);
+                    rightWheel.setSpeed(pid.getTurnSpeed(sample[1]));
                 }
-                LCD.clear();
                 rightWheel.setSpeed(BASE_SPEED);
+                leftWheel.setSpeed(BASE_SPEED);
             }
         }
     }
