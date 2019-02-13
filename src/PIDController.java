@@ -5,9 +5,11 @@ public class PIDController
 {
     private double optimal_distance;
     private int base_speed;
-    private final int KP = 100;
-    private final int KI = 0;
+    private final int KP = 400;
+    private final int KI = 20;
     private final int KD = 0;
+    private double integral = 0;
+    private double prevErr = 0.0;
 
     public PIDController(double optimal_distance, int base_speed)
     {
@@ -18,8 +20,26 @@ public class PIDController
     public int getTurnSpeed(float samp)
     {
         double error = (optimal_distance - samp);// * 2;
-        double turnSpeed = KP * error;
+        if (integral == Double.POSITIVE_INFINITY || integral == Double.NEGATIVE_INFINITY)
+        {
+            integral = 0;
+        }
+        else if (error == 0 || error < 0 && prevErr > 0 || error > 0 && prevErr < 0)
+        {
+            integral = 0;
+        }
+        else
+        {
+            integral = integral + error;
+        }
+        prevErr = error;
+        double turnSpeed = (KP * error) + (KI * integral);
 
         return (int) turnSpeed;
+    }
+
+    public double getIntegral()
+    {
+        return integral;
     }
 }

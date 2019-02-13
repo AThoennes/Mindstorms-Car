@@ -10,6 +10,9 @@ import lejos.robotics.chassis.Wheel;
 
 /**
  * Created by Alex Thoennes and Dan Tartaglione on 2/11/19
+ *
+ * min dist: 0.03 m
+ * max dist: 2.5m
  */
 public class Tank
 {
@@ -40,40 +43,31 @@ public class Tank
         leftWheel.forward();
         rightWheel.forward();
 
+        int ts=0;
+
         PIDController pid = new PIDController(OPTIMAL_DISTANCE, BASE_SPEED);
 
         while (true)
         {
             frontReading.fetchSample(sample, 0);
             rightReading.fetchSample(sample, 1);
+            ts=pid.getTurnSpeed(sample[1]);
+            LCD.drawString("TS:" + ts,0,0);
+            LCD.drawString("I:" + pid.getIntegral(), 0,1);
+//            LCD.clear();
 
-            if (sample[1] > OPTIMAL_DISTANCE)
+            if (ts < -1000)
             {
-                // turn right
-                leftWheel.setSpeed(BASE_SPEED - pid.getTurnSpeed(sample[1]));
-                rightWheel.setSpeed(BASE_SPEED + pid.getTurnSpeed(sample[1]));
-
-                while (sample[1] > OPTIMAL_DISTANCE)
-                {
-                    rightReading.fetchSample(sample, 1);
-                    leftWheel.setSpeed(pid.getTurnSpeed(sample[1]));
-                }
-                leftWheel.setSpeed(BASE_SPEED);
-                rightWheel.setSpeed(BASE_SPEED);
+                //turn in place
+                leftWheel.setSpeed(100);
+                rightWheel.setSpeed(0);
+                //rightWheel.backward();
             }
-            else if (sample[1] < OPTIMAL_DISTANCE)
+            else
             {
-                // turn left
-                rightWheel.setSpeed(BASE_SPEED + pid.getTurnSpeed(sample[1]));
-                leftWheel.setSpeed(BASE_SPEED - pid.getTurnSpeed(sample[1]));
-
-                while (sample[1] < OPTIMAL_DISTANCE)
-                {
-                    rightReading.fetchSample(sample, 1);
-                    rightWheel.setSpeed(pid.getTurnSpeed(sample[1]));
-                }
-                rightWheel.setSpeed(BASE_SPEED);
-                leftWheel.setSpeed(BASE_SPEED);
+                rightWheel.forward();
+                leftWheel.setSpeed(BASE_SPEED - ts);
+                rightWheel.setSpeed(BASE_SPEED + ts);
             }
         }
     }
