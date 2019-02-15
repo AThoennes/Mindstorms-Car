@@ -19,23 +19,15 @@ public class PIDController
 
     public int getTurnSpeed(float samp)
     {
-        double error = (optimal_distance - samp);// * 2;
-        if (integral == Double.POSITIVE_INFINITY || integral == Double.NEGATIVE_INFINITY)
-        {
-            integral = 0;
-        }
-        else if (error == 0 || error < 0 && prevErr > 0 || error > 0 && prevErr < 0)
-        {
-            integral = 0;
-        }
-        else
-        {
-            integral = integral + error;
-        }
+        double error = optimal_distance - samp;
+        integral = integral + (error + prevErr)/2;
+        double P_term = KP * error;
+        double I_term = KI * integral;
+//        double D_term = KD * (error - prevErr)/dt;
+        double u = P_term + I_term;
         prevErr = error;
-        double turnSpeed = (KP * error) + (KI * integral);
 
-        return (int) turnSpeed;
+        return (int) u;
     }
 
     public double getIntegral()
