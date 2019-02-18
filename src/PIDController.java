@@ -4,26 +4,25 @@
 public class PIDController
 {
     private double optimal_angle;
-    private int base_speed;
     private final int KP = 1;
-    private final int KI = 20;
-    private final int KD = 0;
+    private final double KI = .001;
+    private final int KD = 2;
     private double integral = 0;
     private double prevErr = 0.0;
 
-    public PIDController(double optimal_angle, int base_speed)
+    public PIDController(double optimal_angle)
     {
         this.optimal_angle = optimal_angle;
-        this.base_speed = base_speed;
     }
 
-    public int getTurnSpeed(float samp)
+    public int getTurnSpeed(double samp)
     {
-        double error = optimal_angle - samp;
-        //integral = integral + (error + prevErr)/2;
+        samp = (samp + 180) % 360;
+        double error = samp - optimal_angle;
+        //integral = 0.5f * (integral + (error + prevErr)/2);
         double P_term = KP * error;
         //double I_term = KI * integral;
-//        double D_term = KD * (error - prevErr)/dt;
+        //double D_term = KD * (error - prevErr);
         double u = P_term;// + I_term;
         prevErr = error;
 
