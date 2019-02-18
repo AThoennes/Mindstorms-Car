@@ -4,16 +4,11 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.HiTechnicCompass;
-import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
 import lejos.robotics.SampleProvider;
-import lejos.robotics.chassis.Wheel;
 
 /**
  * Created by Alex Thoennes and Dan Tartaglione on 2/11/19
- *
- * min dist: 0.03 m
- * max dist: 2.5m
  */
 public class Tank
 {
@@ -22,7 +17,7 @@ public class Tank
     final static EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.A);
     final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.B);
 
-    private final static double OPTIMAL_DISTANCE = 0.1;
+    private final static double OPTIMAL_ANGLE = 0;
     private final static int BASE_SPEED = 100;
 
     public static void main (String [] args)
@@ -30,7 +25,7 @@ public class Tank
         leftWheel.synchronizeWith(new RegulatedMotor[]{rightWheel});
 
         // maybe getCompassMode() ??
-        SampleProvider frontReading = front.getAngleMode();
+        final SampleProvider frontReading = front.getAngleMode();
 
         float[] sample = new float[frontReading.sampleSize()];
 
@@ -38,16 +33,51 @@ public class Tank
         Button.waitForAnyPress();
         LCD.clear();
 
+        leftWheel.setSpeed(0);
+        rightWheel.setSpeed(75);
+        leftWheel.forward();
+        rightWheel.forward();
+
+        PIDController pid = new PIDController(OPTIMAL_ANGLE, BASE_SPEED);
+
+        frontReading.fetchSample(sample, 0); //MUST HAVE INITIAL READING
+        while(sample[0]!=0)
+        {
+            frontReading.fetchSample(sample, 0);
+            double samp=sample[0];
+            LCD.drawString(""+samp, 0, 0);
+        }
+
         leftWheel.setSpeed(BASE_SPEED);
         rightWheel.setSpeed(BASE_SPEED);
         leftWheel.forward();
         rightWheel.forward();
 
-        PIDController pid = new PIDController(OPTIMAL_DISTANCE, BASE_SPEED);
-
         while (true)
         {
             frontReading.fetchSample(sample, 0);
+            double samp=sample[0];
+            LCD.drawString(""+samp, 0, 0);
+            int ls=BASE_SPEED-pid.getTurnSpeed(sample[0]);
+            int rs=BASE_SPEED+pid.getTurnSpeed(sample[0]);
+            leftWheel.setSpeed(Math.abs(ls));
+            rightWheel.setSpeed(Math.abs(rs));
+            if(ls>=0)
+            {
+                leftWheel.forward();
+            }
+            else
+            {
+                leftWheel.backward();
+            }
+            if(rs>=0)
+            {
+                rightWheel.forward();
+            }
+            else
+            {
+                rightWheel.backward();
+            }
         }
     }
 }
