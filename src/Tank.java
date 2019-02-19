@@ -9,6 +9,9 @@ import lejos.robotics.SampleProvider;
 
 /**
  * Created by Alex Thoennes and Dan Tartaglione on 2/11/19
+ *
+ * This robot is designed to follow magnetic north. It uses a PID Controller
+ * to travel in a straight line.
  */
 public class Tank
 {
@@ -19,7 +22,7 @@ public class Tank
     final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.B);
 
     private final static double OPTIMAL_ANGLE = 180;
-    private final static int BASE_SPEED = 100;
+    private final static int BASE_SPEED = 300;
 
     public static void main (String [] args)
     {
@@ -46,14 +49,17 @@ public class Tank
         c2.fetchSample(sample, 1);
 
         // spin left until you find North (angle = 0.0)
-        while(averageReadings(sample[0], sample[1]) != 0)
+//        while(averageReadings(sample[0], sample[1]) != 0)
+        while (sample[0] != 0)
         {
             c1.fetchSample(sample, 0);
             c2.fetchSample(sample, 1);
-            double samp = averageReadings(sample[0], sample[1]);
+//            double samp = averageReadings(sample[0], sample[1]);
+            double samp = sample[0];
             LCD.clear();
             LCD.drawString(""+samp, 0, 0);
         }
+        LCD.clear();
 
         // Staring speed
         leftWheel.setSpeed(BASE_SPEED);
@@ -68,8 +74,10 @@ public class Tank
             // then display the current reading
             c1.fetchSample(sample, 0);
             c2.fetchSample(sample, 1);
-            double samp = averageReadings(sample[0], sample[1]);
-            LCD.drawString(""+samp, 0, 0);
+//            double samp = averageReadings(sample[0], sample[1]);
+            double samp = sample[0];
+//            LCD.drawString(""+samp, 0, 0);
+//            LCD.drawString(""+pid.getIntegral(), 0, 0);
 
             // get new speeds based on the current angle
             int leftSpeed = BASE_SPEED - pid.getTurnSpeed(sample[0]);
@@ -94,10 +102,10 @@ public class Tank
      */
     private static double averageReadings(float s1, float s2)
     {
-//        s1 -= 180;
+        s1 -= 180;
         s2 += 180;
-//        return ((s1 + s2) / 2) - 180;
-        return s1;
+        return ((s1 + s2) / 2) - 180;
+//        return s1;
     }
 
     /**
