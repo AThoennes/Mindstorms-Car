@@ -30,7 +30,7 @@ public class PIDController
         {
             integral = 0;
         }
-        double u = P_term + I_term + D_term;
+        double u = (P_term + I_term + D_term)%360;
         LCD.clear();
         LCD.drawString("P:"+P_term,0,0);
         LCD.drawString("I:"+I_term,0,1);
