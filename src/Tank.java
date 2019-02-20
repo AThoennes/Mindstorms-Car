@@ -22,7 +22,7 @@ public class Tank
     final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.B);
 
     private final static double OPTIMAL_ANGLE = 180;
-    private final static int BASE_SPEED = 300;
+    private final static int BASE_SPEED = 400;
 
     public static void main (String [] args)
     {
