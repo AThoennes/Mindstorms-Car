@@ -49,12 +49,10 @@ public class Tank
         c2.fetchSample(sample, 1);
 
         // spin left until you find North (angle = 0.0)
-//        while(averageReadings(sample[0], sample[1]) != 0)
         while (sample[0] != 0)
         {
             c1.fetchSample(sample, 0);
             c2.fetchSample(sample, 1);
-//            double samp = averageReadings(sample[0], sample[1]);
             double samp = sample[0];
             LCD.clear();
             LCD.drawString(""+samp, 0, 0);
@@ -74,10 +72,7 @@ public class Tank
             // then display the current reading
             c1.fetchSample(sample, 0);
             c2.fetchSample(sample, 1);
-//            double samp = averageReadings(sample[0], sample[1]);
             double samp = sample[0];
-//            LCD.drawString(""+samp, 0, 0);
-//            LCD.drawString(""+pid.getIntegral(), 0, 0);
 
             // get new speeds based on the current angle
             int leftSpeed = BASE_SPEED - pid.getTurnSpeed(sample[0]);
@@ -90,22 +85,6 @@ public class Tank
             changeDirection(leftSpeed, leftWheel);
             changeDirection(rightSpeed, rightWheel);
         }
-    }
-
-    /**
-     * takes the two reading from both compasses
-     * and returns the average
-     *
-     * @param s1
-     * @param s2
-     * @return
-     */
-    private static double averageReadings(float s1, float s2)
-    {
-        s1 -= 180;
-        s2 += 180;
-        return ((s1 + s2) / 2) - 180;
-//        return s1;
     }
 
     /**

@@ -28,10 +28,6 @@ public class PIDController
         double P_term = KP * error;
         double I_term = KI * integral;
         double D_term = KD * (error - prevErr);
-//        if (I_term < -20 || I_term > 20)
-//        {
-//            integral = 0;
-//        }
         double u = (P_term + I_term + D_term)%360;
         LCD.drawString("P:"+P_term,0,1);
         LCD.drawString("I:"+I_term,0,2);
