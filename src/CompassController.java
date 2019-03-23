@@ -1,3 +1,4 @@
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.sensor.HiTechnicCompass;
 
 /**
@@ -19,6 +20,8 @@ public class CompassController implements Runnable
     {
         while (true)
         {
+            LCD.drawString("SAMP 0:"+sample[0],0,0);
+            LCD.drawString("SAMP 1:"+Tank.getSample()[1], 0,1);
             readCompass();
             Tank.setSample(sample, 0);
             if (sample[0] == 0)

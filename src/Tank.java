@@ -53,6 +53,7 @@ public class Tank
         compass.start();
         move.start();
 
+        touch.run();
         compass.run();
         move.run();
     }
@@ -69,7 +70,7 @@ public class Tank
 
     public static void setSample(float[] samp, int idx)
     {
-        sample[idx] = samp[0];
+        sample[idx] = samp[idx];
     }
 
     public static float[] getSample()

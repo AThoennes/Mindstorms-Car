@@ -17,8 +17,11 @@ public class TouchController implements Runnable
 
     public void run()
     {
-        readTouchSensor();
-        Tank.setSample(sample, 1);
+        while (true)
+        {
+            readTouchSensor();
+            Tank.setSample(sample, 1);
+        }
     }
 
     private void readTouchSensor()

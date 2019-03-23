@@ -1,3 +1,4 @@
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.RegulatedMotor;
 
@@ -14,7 +15,7 @@ public class MovementController implements Runnable
     private double optimal_angle;
 
     private int base_speed;
-    private final int BACKUP_DEGREES = -360;
+    private final int BACKUP_DEGREES = 360;
     private final int FORWARD_DEGREES = 720;
 
     public MovementController(PIDController pid, EV3LargeRegulatedMotor leftWheel, EV3LargeRegulatedMotor rightWheel,
@@ -37,9 +38,12 @@ public class MovementController implements Runnable
         // CONTROL LOOP
         while (true)
         {
+            LCD.drawString("MOVING", 0, 1);
             // touched something
             if (Tank.getSample()[1] == 1)
             {
+                LCD.drawString("TOUCHED",0,2);
+
                 moveAroundObject();
             }
 
@@ -56,20 +60,28 @@ public class MovementController implements Runnable
         while (!Tank.isFoundNorth())
         {
             // set the turning speed to find magnetic north
+            leftWheel.startSynchronization();
             leftWheel.setSpeed(0);
             rightWheel.setSpeed(75);
             leftWheel.forward();
             rightWheel.forward();
+            leftWheel.endSynchronization();
+//            leftWheel.waitComplete();
+//            rightWheel.waitComplete();
         }
     }
 
     private void setInitialSpeed(int base_speed)
     {
         // Starting speed
+        leftWheel.startSynchronization();
         leftWheel.setSpeed(base_speed);
         rightWheel.setSpeed(base_speed);
         leftWheel.forward();
         rightWheel.forward();
+        leftWheel.endSynchronization();
+//        leftWheel.waitComplete();
+//        rightWheel.waitComplete();
     }
 
     /**
@@ -120,11 +132,11 @@ public class MovementController implements Runnable
         while (Tank.getSample()[0] != 90)
         {
             leftWheel.startSynchronization();
-            changeWheelDirection(-200, leftWheel);
-            changeWheelDirection(200, rightWheel);
+            changeWheelDirection(75, leftWheel);
+            changeWheelDirection(75, rightWheel);
             leftWheel.endSynchronization();
-            leftWheel.waitComplete();
-            rightWheel.waitComplete();
+//            leftWheel.waitComplete();
+//            rightWheel.waitComplete();
         }
     }
 
@@ -133,11 +145,11 @@ public class MovementController implements Runnable
         while (Tank.getSample()[0] != 0)
         {
             leftWheel.startSynchronization();
-            changeWheelDirection(200, leftWheel);
-            changeWheelDirection(-200, rightWheel);
+            changeWheelDirection(75, leftWheel);
+            changeWheelDirection(75, rightWheel);
             leftWheel.endSynchronization();
-            leftWheel.waitComplete();
-            rightWheel.waitComplete();
+//            leftWheel.waitComplete();
+//            rightWheel.waitComplete();
         }
     }
 
@@ -147,8 +159,8 @@ public class MovementController implements Runnable
         moveBackwards(leftWheel, degrees);
         moveBackwards(rightWheel, degrees);
         leftWheel.endSynchronization();
-        leftWheel.waitComplete();
-        rightWheel.waitComplete();
+//        leftWheel.waitComplete();
+//        rightWheel.waitComplete();
     }
 
     private void forward(int degrees)
@@ -157,17 +169,19 @@ public class MovementController implements Runnable
         moveForwards(leftWheel, degrees);
         moveForwards(rightWheel, degrees);
         leftWheel.endSynchronization();
-        leftWheel.waitComplete();
-        rightWheel.waitComplete();
+//        leftWheel.waitComplete();
+//        rightWheel.waitComplete();
     }
 
     private void moveForwards(EV3LargeRegulatedMotor wheel, int degrees)
     {
+        wheel.forward();
         wheel.rotate(degrees);
     }
 
     private void moveBackwards(EV3LargeRegulatedMotor wheel, int degrees)
     {
+        wheel.backward();
         wheel.rotate(degrees);
     }
 }
