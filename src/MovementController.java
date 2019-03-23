@@ -14,9 +14,11 @@ public class MovementController implements Runnable
     private double optimal_angle;
 
     private int base_speed;
+    private final int BACKUP_DEGREES = -360;
+    private final int FORWARD_DEGREES = 720;
 
-    public MovementController (PIDController pid, EV3LargeRegulatedMotor leftWheel, EV3LargeRegulatedMotor rightWheel,
-                               double optimal_angle, int base_speed)
+    public MovementController(PIDController pid, EV3LargeRegulatedMotor leftWheel, EV3LargeRegulatedMotor rightWheel,
+                              double optimal_angle, int base_speed)
     {
         this.pid = pid;
         this.leftWheel = leftWheel;
@@ -27,7 +29,7 @@ public class MovementController implements Runnable
         leftWheel.synchronizeWith(new RegulatedMotor[]{rightWheel});
     }
 
-    public void run ()
+    public void run()
     {
         findNorth();
         setInitialSpeed(base_speed);
@@ -35,22 +37,23 @@ public class MovementController implements Runnable
         // CONTROL LOOP
         while (true)
         {
-            // get new speeds based on the current angle
-            int leftSpeed = base_speed - pid.getTurnSpeed(Tank.getSample()[0]);
-            int rightSpeed = base_speed + pid.getTurnSpeed(Tank.getSample()[0]);
+            // touched something
+            if (Tank.getSample()[1] == 1)
+            {
+                moveAroundObject();
+            }
 
-            leftWheel.setSpeed(Math.abs(leftSpeed));
-            rightWheel.setSpeed(Math.abs(rightSpeed));
+            adjustSpeed();
 
             // adjust wheel direction
-            changeWheelDirection(leftSpeed, leftWheel);
-            changeWheelDirection(rightSpeed, rightWheel);
+            changeWheelDirection(leftWheel.getSpeed(), leftWheel);
+            changeWheelDirection(rightWheel.getSpeed(), rightWheel);
         }
     }
 
     private void findNorth()
     {
-        while (!Tank.foundNorth)
+        while (!Tank.isFoundNorth())
         {
             // set the turning speed to find magnetic north
             leftWheel.setSpeed(0);
@@ -73,6 +76,7 @@ public class MovementController implements Runnable
      * changes the direction of the wheels
      * if the speed if < 0 then the wheel goes backwards
      * otherwise it goes forwards
+     *
      * @param speed
      * @param wheel
      */
@@ -86,5 +90,84 @@ public class MovementController implements Runnable
         {
             wheel.backward();
         }
+    }
+
+    private void adjustSpeed()
+    {
+        // get new speeds based on the current angle
+        int leftSpeed = base_speed - pid.getTurnSpeed(Tank.getSample()[0]);
+        int rightSpeed = base_speed + pid.getTurnSpeed(Tank.getSample()[0]);
+
+        leftWheel.setSpeed(Math.abs(leftSpeed));
+        rightWheel.setSpeed(Math.abs(rightSpeed));
+    }
+
+    private void moveAroundObject()
+    {
+        backup(BACKUP_DEGREES);
+        turnLeft();
+        forward(FORWARD_DEGREES);
+        turnRight();
+        forward(FORWARD_DEGREES);
+        turnRight();
+        forward(FORWARD_DEGREES);
+        turnLeft();
+        setInitialSpeed(base_speed);
+    }
+
+    private void turnLeft()
+    {
+        while (Tank.getSample()[0] != 90)
+        {
+            leftWheel.startSynchronization();
+            changeWheelDirection(-200, leftWheel);
+            changeWheelDirection(200, rightWheel);
+            leftWheel.endSynchronization();
+            leftWheel.waitComplete();
+            rightWheel.waitComplete();
+        }
+    }
+
+    private void turnRight()
+    {
+        while (Tank.getSample()[0] != 0)
+        {
+            leftWheel.startSynchronization();
+            changeWheelDirection(200, leftWheel);
+            changeWheelDirection(-200, rightWheel);
+            leftWheel.endSynchronization();
+            leftWheel.waitComplete();
+            rightWheel.waitComplete();
+        }
+    }
+
+    private void backup(int degrees)
+    {
+        leftWheel.startSynchronization();
+        moveBackwards(leftWheel, degrees);
+        moveBackwards(rightWheel, degrees);
+        leftWheel.endSynchronization();
+        leftWheel.waitComplete();
+        rightWheel.waitComplete();
+    }
+
+    private void forward(int degrees)
+    {
+        leftWheel.startSynchronization();
+        moveForwards(leftWheel, degrees);
+        moveForwards(rightWheel, degrees);
+        leftWheel.endSynchronization();
+        leftWheel.waitComplete();
+        rightWheel.waitComplete();
+    }
+
+    private void moveForwards(EV3LargeRegulatedMotor wheel, int degrees)
+    {
+        wheel.rotate(degrees);
+    }
+
+    private void moveBackwards(EV3LargeRegulatedMotor wheel, int degrees)
+    {
+        wheel.rotate(degrees);
     }
 }
