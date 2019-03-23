@@ -16,7 +16,6 @@ import lejos.robotics.SampleProvider;
 public class Tank
 {
     final static HiTechnicCompass c1 = new HiTechnicCompass(SensorPort.S1);
-    final static HiTechnicCompass c2 = new HiTechnicCompass(SensorPort.S4);
 
     final static EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.A);
     final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.B);
@@ -29,9 +28,8 @@ public class Tank
         leftWheel.synchronizeWith(new RegulatedMotor[]{rightWheel});
 
         final SampleProvider c1Reading = c1.getAngleMode();
-        final SampleProvider c2Reading = c2.getAngleMode();
 
-        float[] sample = new float[c1Reading.sampleSize() + c2Reading.sampleSize()];
+        float[] sample = new float[c1Reading.sampleSize()];
 
         LCD.drawString("Press a button to start", 0, 0);
         Button.waitForAnyPress();
@@ -46,13 +44,11 @@ public class Tank
         PIDController pid = new PIDController(OPTIMAL_ANGLE);
 
         c1.fetchSample(sample, 0);
-        c2.fetchSample(sample, 1);
 
         // spin left until you find North (angle = 0.0)
         while (sample[0] != 0)
         {
             c1.fetchSample(sample, 0);
-            c2.fetchSample(sample, 1);
             double samp = sample[0];
             LCD.clear();
             LCD.drawString(""+samp, 0, 0);
@@ -71,7 +67,6 @@ public class Tank
             // get the samples and average them
             // then display the current reading
             c1.fetchSample(sample, 0);
-            c2.fetchSample(sample, 1);
             double samp = sample[0];
 
             // get new speeds based on the current angle
