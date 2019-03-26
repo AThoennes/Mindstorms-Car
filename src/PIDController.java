@@ -29,10 +29,10 @@ public class PIDController
         double I_term = KI * integral;
         double D_term = KD * (error - prevErr);
         double u = (P_term + I_term + D_term)%360;
-        LCD.drawString("P:"+P_term,0,1);
-        LCD.drawString("I:"+I_term,0,2);
-        LCD.drawString("D:"+D_term,0,3);
-        LCD.drawString("U:"+u,0,4);
+        LCD.drawString("P:"+P_term,0,2);
+        LCD.drawString("I:"+I_term,0,3);
+        LCD.drawString("D:"+D_term,0,4);
+        LCD.drawString("U:"+u,0,5);
 
         prevErr = error;
 

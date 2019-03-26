@@ -5,7 +5,7 @@ import lejos.hardware.sensor.EV3TouchSensor;
  */
 public class TouchController implements Runnable
 {
-    EV3TouchSensor touchSensor;
+    private EV3TouchSensor touchSensor;
 
     private float [] sample;
 

@@ -15,8 +15,8 @@ public class MovementController implements Runnable
     private double optimal_angle;
 
     private int base_speed;
-    private final int BACKUP_DEGREES = 360;
-    private final int FORWARD_DEGREES = 720;
+    private final int BACKUP_DEGREES = 120;
+    private final int FORWARD_DEGREES = 400;
 
     public MovementController(PIDController pid, EV3LargeRegulatedMotor leftWheel, EV3LargeRegulatedMotor rightWheel,
                               double optimal_angle, int base_speed)
@@ -32,7 +32,7 @@ public class MovementController implements Runnable
 
     public void run()
     {
-        findNorth();
+        //findNorth();
         setInitialSpeed(base_speed);
 
         // CONTROL LOOP
@@ -43,7 +43,7 @@ public class MovementController implements Runnable
             if (Tank.getSample()[1] == 1)
             {
                 LCD.drawString("TOUCHED",0,2);
-
+                halt();
                 moveAroundObject();
             }
 
@@ -116,72 +116,76 @@ public class MovementController implements Runnable
 
     private void moveAroundObject()
     {
-        backup(BACKUP_DEGREES);
+    	leftWheel.setSpeed(150);
+        rightWheel.setSpeed(150);
+    	backup(BACKUP_DEGREES);
+    	halt();
         turnLeft();
+        halt();
         forward(FORWARD_DEGREES);
+        halt();
         turnRight();
+        halt();
         forward(FORWARD_DEGREES);
+        halt();
         turnRight();
+        halt();
         forward(FORWARD_DEGREES);
+        halt();
         turnLeft();
+        halt();
         setInitialSpeed(base_speed);
     }
 
     private void turnLeft()
     {
-        while (Tank.getSample()[0] != 90)
-        {
-            leftWheel.startSynchronization();
-            changeWheelDirection(75, leftWheel);
-            changeWheelDirection(75, rightWheel);
-            leftWheel.endSynchronization();
-//            leftWheel.waitComplete();
-//            rightWheel.waitComplete();
-        }
+        leftWheel.startSynchronization();
+        leftWheel.rotate(-360);
+        rightWheel.rotate(360);
+        leftWheel.endSynchronization();
+        leftWheel.waitComplete();
+        rightWheel.waitComplete();
     }
 
     private void turnRight()
     {
-        while (Tank.getSample()[0] != 0)
-        {
-            leftWheel.startSynchronization();
-            changeWheelDirection(75, leftWheel);
-            changeWheelDirection(75, rightWheel);
-            leftWheel.endSynchronization();
-//            leftWheel.waitComplete();
-//            rightWheel.waitComplete();
-        }
+    	leftWheel.startSynchronization();
+        leftWheel.rotate(360);
+        rightWheel.rotate(-360);
+        leftWheel.endSynchronization();
+        leftWheel.waitComplete();
+        rightWheel.waitComplete();
     }
 
     private void backup(int degrees)
     {
         leftWheel.startSynchronization();
-        moveBackwards(leftWheel, degrees);
-        moveBackwards(rightWheel, degrees);
+        leftWheel.rotate(-90);
+        rightWheel.rotate(-90);
         leftWheel.endSynchronization();
-//        leftWheel.waitComplete();
-//        rightWheel.waitComplete();
+        leftWheel.waitComplete();
+        rightWheel.waitComplete();
     }
 
     private void forward(int degrees)
     {
         leftWheel.startSynchronization();
-        moveForwards(leftWheel, degrees);
-        moveForwards(rightWheel, degrees);
+        leftWheel.rotate(720);
+        rightWheel.rotate(720);
         leftWheel.endSynchronization();
-//        leftWheel.waitComplete();
-//        rightWheel.waitComplete();
+        leftWheel.waitComplete();
+        rightWheel.waitComplete();
     }
-
-    private void moveForwards(EV3LargeRegulatedMotor wheel, int degrees)
+    
+    private void halt()
     {
-        wheel.forward();
-        wheel.rotate(degrees);
-    }
-
-    private void moveBackwards(EV3LargeRegulatedMotor wheel, int degrees)
-    {
-        wheel.backward();
-        wheel.rotate(degrees);
+    	leftWheel.startSynchronization();
+        leftWheel.stop();
+        rightWheel.stop();
+        leftWheel.endSynchronization();
+        try {
+        	Thread.sleep(1000);
+        }
+        catch(InterruptedException e) {}
     }
 }

@@ -15,12 +15,12 @@ import lejos.robotics.SampleProvider;
  */
 public class Tank
 {
-    private final static HiTechnicCompass compassSensor = new HiTechnicCompass(SensorPort.S1);
+    private final static HiTechnicCompass compassSensor = new HiTechnicCompass(SensorPort.S3);
 
-    private final static EV3TouchSensor touchSensor = new EV3TouchSensor(SensorPort.S2);
+    private final static EV3TouchSensor touchSensor = new EV3TouchSensor(SensorPort.S4);
 
-    private final static EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.A);
-    private final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.B);
+    private final static EV3LargeRegulatedMotor leftWheel = new EV3LargeRegulatedMotor(MotorPort.C);
+    private final static EV3LargeRegulatedMotor rightWheel = new EV3LargeRegulatedMotor(MotorPort.D);
 
     private final static double OPTIMAL_ANGLE = 180;
     private final static int BASE_SPEED = 300;
