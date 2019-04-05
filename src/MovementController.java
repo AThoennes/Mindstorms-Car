@@ -11,53 +11,63 @@ public class MovementController implements Runnable
 
     private EV3LargeRegulatedMotor leftWheel;
     private EV3LargeRegulatedMotor rightWheel;
-
-    private double optimal_angle;
+    private BlockageFlag blockageFlag;
 
     private int base_speed;
-    private final int BACKUP_DEGREES = 120;
-    private final int FORWARD_DEGREES = 400;
 
-    public MovementController(PIDController pid, EV3LargeRegulatedMotor leftWheel, EV3LargeRegulatedMotor rightWheel,
-                              double optimal_angle, int base_speed)
+    public MovementController(PIDController pid, EV3LargeRegulatedMotor leftWheel, EV3LargeRegulatedMotor rightWheel, int base_speed, BlockageFlag flag)
     {
         this.pid = pid;
         this.leftWheel = leftWheel;
         this.rightWheel = rightWheel;
-        this.optimal_angle = optimal_angle;
         this.base_speed = base_speed;
+        this.blockageFlag=flag;
 
         leftWheel.synchronizeWith(new RegulatedMotor[]{rightWheel});
     }
 
     public void run()
     {
-        //findNorth();
+        try {
+        	Thread.sleep(1000);
+        }
+        catch(InterruptedException e) {
+        	LCD.drawString("MovementController Error", 0, 0);
+        }
+    	findNorth();
         setInitialSpeed(base_speed);
 
         // CONTROL LOOP
         while (true)
         {
-            LCD.drawString("MOVING", 0, 1);
             // touched something
-            if (Tank.getSample()[1] == 1)
+            if(!blockageFlag.isFound())
             {
-                LCD.drawString("TOUCHED",0,2);
-                halt();
-                moveAroundObject();
+            	//PID controller
+            	adjustSpeed();
+            	
+            	//Adjust wheel directions
+            	changeWheelDirection(leftWheel.getSpeed(), leftWheel);
+            	changeWheelDirection(rightWheel.getSpeed(), rightWheel);
             }
-
-            adjustSpeed();
-
-            // adjust wheel direction
-            changeWheelDirection(leftWheel.getSpeed(), leftWheel);
-            changeWheelDirection(rightWheel.getSpeed(), rightWheel);
+            else {
+            	blockageFlag.toggle();
+            	//This thread stops for a set amount of time, allowing the avoidance movement to resolve
+            	//The toggle signals the other thread to begin
+            	//Another approach would be to repeatedly loop a .sleep() until the movingAround flag in the BlockageFlag object is toggled again
+            	try {
+            		Thread.sleep(45000);
+            	}
+            	catch(Exception e) {
+            		e.printStackTrace();
+            	}
+            }
         }
     }
 
     private void findNorth()
     {
-        while (!Tank.isFoundNorth())
+        while(pid.getPrevErr()!=0)
         {
             // set the turning speed to find magnetic north
             leftWheel.startSynchronization();
@@ -66,8 +76,6 @@ public class MovementController implements Runnable
             leftWheel.forward();
             rightWheel.forward();
             leftWheel.endSynchronization();
-//            leftWheel.waitComplete();
-//            rightWheel.waitComplete();
         }
     }
 
@@ -106,86 +114,10 @@ public class MovementController implements Runnable
 
     private void adjustSpeed()
     {
-        // get new speeds based on the current angle
-        int leftSpeed = base_speed - pid.getTurnSpeed(Tank.getSample()[0]);
-        int rightSpeed = base_speed + pid.getTurnSpeed(Tank.getSample()[0]);
+    	int leftSpeed = base_speed - pid.getTurnSpeed();
+        int rightSpeed = base_speed + pid.getTurnSpeed();
 
         leftWheel.setSpeed(Math.abs(leftSpeed));
         rightWheel.setSpeed(Math.abs(rightSpeed));
-    }
-
-    private void moveAroundObject()
-    {
-    	leftWheel.setSpeed(150);
-        rightWheel.setSpeed(150);
-    	backup(BACKUP_DEGREES);
-    	halt();
-        turnLeft();
-        halt();
-        forward(FORWARD_DEGREES);
-        halt();
-        turnRight();
-        halt();
-        forward(FORWARD_DEGREES);
-        halt();
-        turnRight();
-        halt();
-        forward(FORWARD_DEGREES);
-        halt();
-        turnLeft();
-        halt();
-        setInitialSpeed(base_speed);
-    }
-
-    private void turnLeft()
-    {
-        leftWheel.startSynchronization();
-        leftWheel.rotate(-360);
-        rightWheel.rotate(360);
-        leftWheel.endSynchronization();
-        leftWheel.waitComplete();
-        rightWheel.waitComplete();
-    }
-
-    private void turnRight()
-    {
-    	leftWheel.startSynchronization();
-        leftWheel.rotate(360);
-        rightWheel.rotate(-360);
-        leftWheel.endSynchronization();
-        leftWheel.waitComplete();
-        rightWheel.waitComplete();
-    }
-
-    private void backup(int degrees)
-    {
-        leftWheel.startSynchronization();
-        leftWheel.rotate(-90);
-        rightWheel.rotate(-90);
-        leftWheel.endSynchronization();
-        leftWheel.waitComplete();
-        rightWheel.waitComplete();
-    }
-
-    private void forward(int degrees)
-    {
-        leftWheel.startSynchronization();
-        leftWheel.rotate(720);
-        rightWheel.rotate(720);
-        leftWheel.endSynchronization();
-        leftWheel.waitComplete();
-        rightWheel.waitComplete();
-    }
-    
-    private void halt()
-    {
-    	leftWheel.startSynchronization();
-        leftWheel.stop();
-        rightWheel.stop();
-        leftWheel.endSynchronization();
-        try {
-        	Thread.sleep(1000);
-        }
-        catch(InterruptedException e) {}
     }
 }
